@@ -1,0 +1,118 @@
+% Document Type: PDFLaTeX
+% Master File: bit.tex
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsmath,mlsmath}
+
+\begin{document}
+\title{A Candidate Mathematical Formulation for Built-In-Test (BIT)}
+\author{
+  Karl {\AA}str\"{o}m \qquad
+  George Bollas \qquad
+  Benson Christalin \qquad
+  Alberto Ferrari \\
+  William Hale \qquad
+  Clas Jacobson \qquad
+  Marten Lohstroh \qquad
+  Marco Marazza \\
+  Yilin Mo \qquad
+  Richard Murray \qquad
+  Kyle Palmer \qquad
+  Young Park \qquad
+  Rich Poisson
+}
+\date{DRAFT. \today}
+\maketitle
+
+\section{Built-In-Test for a Single System}
+
+Consider first a (abstract) dynamical system whose state propogates
+according to the following equation:
+\begin{displaymath}
+  x' = f(x, \theta, u), \qquad x(t)\in\reals^n,\, \theta\in\reals^p,\,
+  u(t) \in\reals^m,
+\end{displaymath}
+where $x(t)$ is the state, $\theta$ are a set of parameters and $u$ is a
+(control) input.  We use $x'$ to represent the future state and
+allow the possibility that it represents the time derivative $\dot x$,
+a discrete-time update $x[k]$, or (discrete) state transition $x'$.
+
+As a starting point, we assume that the system has a controller,
+depending on the control mode $\alpha \in \integers$, of the
+form $$u = k_\alpha(\hat x, r)$$ that maps the current (estimated) state of the
+system along with a reference input (command).  We write this here as
+a static mapping but this may be a more complex (dynamical) system,
+such as a dynamic compensator (PID, MPC, etc).  The role of the mode
+$\alpha$ is to allow that the system may operate in different discrete
+modes that use different controllers.
+
+A simple way of defining a ``fault'' is to say that a change in the
+dynamics occurs that is reflected through a change in the values
+describing the parameters $\theta$.  In this definition, we might
+define a set of parameters $\Theta_{\text{fault},\alpha} \subset
+\reals^p$ that corresponds to one or more fault conditions in contoller
+mode $\alpha$.  We further define a set of fault codes that are
+parameterized by an integer-valued multi-function $\text{FC}:\reals^p
+\to 2^\integers$ where
+\begin{displaymath}
+  \text{FC}(\theta) = 
+  \begin{cases}
+    \emptyset, & \theta \notin \Theta_{\text{fault},\alpha}
+      \quad\text{(no fault)}, \\
+    \{\text{fc}_1, \dots, \text{fc}_k\},
+      & \theta \in \Theta_{\text{fault},\alpha}
+        \quad\text{(one or more faults)}.
+  \end{cases}
+\end{displaymath}
+Note that $\text{FC}(\theta)$ can have multiple values, with each
+value $\text{fc}_i$ corresponding to a fault code (there may be more
+than one for a given system configuration).  We also explicitly keep
+track of the fact that the subset of parameter values corresponding to
+a given fault might depend on the controller mode $\alpha$.
+
+Detecting faults depends on measurements of the system, which we
+assume can be modeled in the form
+\begin{displaymath}
+  y = h(x, \theta) + w
+\end{displaymath}
+where $y \in \reals^l$ represents a vector of measurements and $w$
+corresponds to some noise process.  We can either assume the sensors
+are given ($h$ is specified) or that we are allowed to choose the
+sensed varaiables ($h$ can be chosen from some family of possible
+measurements).
+
+\paragraph{Continuous BIT (CBIT)}
+Continuous built-in-test measures the input and output signals $u(t),
+y(t)$ and attempts to determine whether $\theta \in
+\Theta_\text{faulty}$ and, if so, returns a set of fault codes
+$\text{FC}(\theta)$.  If we don't measure $\theta$ directly, we might
+use an estimate $\hat\theta$ (estimated from the input/output data)
+that satisfies the property
+\begin{displaymath}
+  \text{FC}(\hat\theta) \subseteq \text{FC}(\theta)
+  \qquad\text{or}\qquad
+  \text{FC}(\hat\theta) \cap \text{FC}(\theta) \neq \emptyset.
+\end{displaymath}
+The first condition says that we get a set of fault codes that are a
+subset of the actual fault codes; the second condition says that there
+is at least one fault code is reported that matches the actual fault
+codes.  In addition to a ``steady state'' fault determination, there
+may also be performance requirements for how quickly the fault is
+detected. 
+
+\paragraph{Initiated BIT (IBIT)}
+In initiated built-in-test, we allow for the possibility of commanding
+new reference points $r$ that might help in the determination of the
+underlying parameter values.  The corresponds roughly to the notion of
+``forced response testing'', in which we choose a set of inputs that
+allow us to better (or more quickly) identify the parameters.  Because
+we are changing the reference to the system, initiated BIT is
+typically use when the system is not in normal operation.  We assume
+that no additonal equipment is needed to executed IBIT; hence the
+original system dynamics and controllers are the only things available
+to the IBIT algorithm.
+
+\section{Built-In-Test for a System of Subsystems}
+
+
+\end{document}
